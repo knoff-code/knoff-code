@@ -1,192 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Ферросиликомарганец МНС17 — Липроеп Плюс</title>
-  <meta name="description" content="Купить ферросиликомарганец МНС17 оптом — высококачественный Mn 60% / Si 15–20% / C ≤2.5%. Отгрузка, отсрочка платежа 30 дней.">
-  <meta name="keywords" content="ферросиликомарганец, МНС17, ферросплав, MnSi, купить ферросиликомарганец оптом, поставки ферросплавов">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <!-- GSAP for animations, three.js for 3D hero, plus simple icons -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
-  <style>
-    :root{--bg:#0f1113;--card:#0e1114;--muted:#9aa3ad;--accent:#ff6a00;--glass:rgba(255,255,255,0.03);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b0c0d 0%, #111214 60%);color:#e8eef2;line-height:1.45}
-    header{padding:28px 40px;display:flex;align-items:center;justify-content:space-between}
-    .logo{display:flex;gap:14px;align-items:center}
-    .brand-dot{width:14px;height:14px;background:linear-gradient(45deg,#ff6a00,#ffb27a);border-radius:4px}
-    h1{font-weight:800;letter-spacing:-0.02em;margin:0}
-    .sub{color:var(--muted);font-weight:300}
-    nav a{color:var(--muted);text-decoration:none;margin-left:18px}
-
-    /* Hero */
-    .hero{display:grid;grid-template-columns:1fr 520px;gap:36px;padding:24px 40px 60px;align-items:center}
-    .hero-left{max-width:760px}
-    .kicker{display:inline-block;padding:6px 10px;background:var(--glass);border-radius:6px;color:var(--accent);font-weight:600;margin-bottom:14px}
-    .cta{display:flex;gap:12px;margin-top:22px}
-    .btn{background:var(--accent);color:#0b0c0d;padding:12px 18px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
-    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-
-    /* Right column card */
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:20px;border-radius:12px;box-shadow:0 6px 30px rgba(0,0,0,0.6)}
-    .specs{display:flex;flex-direction:column;gap:10px}
-    .spec{display:flex;justify-content:space-between}
-    .bar{height:10px;background:#111;border-radius:6px;overflow:hidden;flex:1;margin-left:12px}
-    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ffd3b3);width:40%}
-
-    /* Sections */
-    section{padding:30px 40px}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-    .tile{background:var(--card);padding:18px;border-radius:10px}
-
-    /* Calculator */
-    .calc{display:flex;gap:12px;align-items:center}
-    input[type=number]{padding:10px;border-radius:8px;border:none;background:#0b0c0d;color:#fff;width:140px}
-
-    footer{padding:28px 40px;color:var(--muted);font-size:14px;border-top:1px solid rgba(255,255,255,0.03)}
-
-    /* Responsive */
-    @media(max-width:980px){.hero{grid-template-columns:1fr;}.grid-3{grid-template-columns:1fr}.hero-right{order:2}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ООО «Липроеп Плюс» - B2B решения для металлургии</title>
+    <link rel="icon" type="image/png" href="imgs/favicon.png"/>
+    <link rel="stylesheet" href="сss/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <div class="brand-dot" aria-hidden></div>
-      <div>
-        <div style="font-weight:800">ООО «Липроеп Плюс»</div>
-        <div class="sub">Поставки ферросплавов — МНС17 / MnSi</div>
-      </div>
-    </div>
-    <!--
-    <nav>
-      <a href="#product">Продукт</a>
-      <a href="#certs">Сертификаты</a>
-      <a href="#contacts">Контакты</a>
-    </nav>
-    -->
-  </header>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="imgs/005.png" alt="Липроеп Плюс" height="100%">
+                <span class="logo-text">Липроеп Плюс</span>
+            </div>
+            <div class="nav">
+                <ul class="nav-list">
+                    <li id="select"><a href="index.html" class="nav-link">Главная</a></li>
+                    <li><a href="products.html" class="nav-link">Продукция</a></li>
+                    <li><a href="about.html" class="nav-link">О компании</a></li>
+                </ul>
+            </div>
+            <button class="burger-menu" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-left">
-        <div class="kicker">Ферросиликомарганец МНС17 — фракция 0-20</div>
-        <h1>Качественный MnSi для металлургии и сталеплавильных производств</h1>
-        <p class="sub" style="margin-top:10px">Mn ≥ 60% · Si 15–20% · C ≤ 2.5% — стабильные поставки, отсрочка платежа до 30 дней. Отгрузка со склада ЛНР.</p>
-        <div class="cta">
-          <a href="//knoff-code.github.io/ferrosilicon_manganese/">Cертификат соответствия</a>
-          <!-- <button class="btn" id="quickQuote">Скачать сертификат</button> -->
-          <!-- <button class="btn-ghost">Запросить КП</button> -->
-        </div>
-        <div style="margin-top:24px;display:flex;gap:14px;align-items:center">
-          <div style="font-size:13px;color:var(--muted)">Минимальный объём:</div>
-          <div style="font-weight:700">Договорной, оптом</div>
-        </div>
-      </div>
+    <main>
+        <section class="hero-section" style="background-image: url('imgs/000.png');">
+            <div class="hero-content container">
+                <h1 class="hero-title">Ваше производство теряет деньги на каждом килограмме дорогого ферросилиция.</h1>
+                <p class="hero-subtitle">Мы предлагаем сертифицированное решение: замена до 25% ФС-65 на наш ШФС-30 без потери качества металла.</p>
+                <a href="products.html" class="btn btn-primary">Наша продукция</a>
+            </div>
+        </section>
 
-      <aside class="hero-right card">
-        <div style="position:relative;">
-          <img src="./imgs/001.jpeg" style="width:100%;height:100%;display:block;border-radius:8px;">
-          <!-- 3D canvas -->
-          <!-- <canvas id="heroCanvas" style="width:100%;height:100%;display:block;border-radius:8px;" aria-hidden></canvas> -->
-        </div>
+        <section class="economic-section" id="benefits">
+            <div class="container">
+                <h2 class="section-title">Считайте экономию в цифрах</h2>
+                <div class="data-blocks">
+                    <div class="data-block">
+                        <span class="data-number">+3200 Р</span>
+                        <p class="data-description">с каждой тонны продукции</p>
+                    </div>
+                    <div class="data-block">
+                        <span class="data-number">18%</span>
+                        <p class="data-description">снижение удельных затрат</p>
+                    </div>
+                    <div class="data-block">
+                        <span class="data-number">10+ лет</span>
+                        <p class="data-description">на рынке металлургии</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" class="savings-chart">
+                        <text x="400" y="30" font-size="24" font-weight="600" text-anchor="middle" fill="#2C2C2C">Сравнение удельных затрат на тонну продукции</text>
+                        
+                        <line x1="100" y1="350" x2="700" y2="350" stroke="#2C2C2C" stroke-width="2"/>
+                        <text x="250" y="380" font-size="16" text-anchor="middle" fill="#2C2C2C">Стандартный процесс</text>
+                        <text x="550" y="380" font-size="16" text-anchor="middle" fill="#2C2C2C">С использованием ШФС-30</text>
+                        
+                        <line x1="100" y1="350" x2="100" y2="80" stroke="#2C2C2C" stroke-width="2"/>
+                        <text x="90" y="350" text-anchor="end" font-size="14" fill="#2C2C2C">0</text>
+                        <text x="90" y="250" text-anchor="end" font-size="14" fill="#2C2C2C">Стоимость</text>
+                        <text x="90" y="150" text-anchor="end" font-size="14" fill="#2C2C2C">Высокая</text>
+                        
+                        <rect x="200" y="150" width="100" height="200" fill="#005A8C"/>
+                        <rect x="500" y="200" width="100" height="150" fill="#CC5500"/>
+                        
+                        <text x="250" y="140" font-size="18" font-weight="700" text-anchor="middle" fill="#005A8C">100%</text>
+                        <text x="550" y="190" font-size="18" font-weight="700" text-anchor="middle" fill="#CC5500">82% (-18%)</text>
+                        
+                        <line x1="300" y1="175" x2="500" y2="175" stroke="#CC5500" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="400" y="170" font-size="16" text-anchor="middle" fill="#CC5500">Экономия до 3200 Р</text>
+                    </svg>
+                </div>
+            </div>
+        </section>
 
-        <div style="margin-top:14px" class="specs">
-          <div class="spec"><div>Марганец (Mn)</div><div style="font-weight:800">≥ 60%</div></div>
-          <div class="spec"><div>Кремний (Si)</div><div style="font-weight:800">15–20%</div></div>
-          <div class="spec"><div>Углерод (C)</div><div style="font-weight:800">≤ 2.5%</div></div>
-          <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
-            <!--
-            <button class="btn" id="calcBtn">Тех. паспорт</button>
-            <button class="btn-ghost" id="specBtn">ТКалькулятор</button>
-            -->
-          </div>
-        </div>
-      </aside>
-    </section>
+        <section class="about-section about-section-bg-one" id="about">
+            <div class="container">
+                <div class="about-content">
+                    <h2 class="section-title">Наш подход: не продажа, а партнёрство</h2>
+                    <p>Наша миссия — превращать отходы металлургического производства в стратегические ресурсы. Мы строим долгосрочные партнёрские отношения, основанные на эффективности и надёжности. ООО «Липроеп Плюс» стремится не просто поставлять продукцию, а быть надёжным партнёром, который помогает оптимизировать ваши производственные процессы и сокращать издержки.</p>
+                </div>
+                <div class="about-image-wrapper">
+                    <div class="placeholder-image" style="background-image: url('imgs/004.png');">
+                        <img src="imgs/004.png" alt="Наш подход: не продажа, а партнёрство" width="500px" height="500px">
+                        <!--<p>Фото: реальный производственный процесс или специалист на объекте</p>-->
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <section id="product">
-      <h2>Почему МНС17 применяют в сталелитейной промышленности</h2>
-      <div class="grid-3" style="margin-top:16px">
-        <div class="tile">
-          <h3>Стабильный химический состав</h3>
-          <p class="sub">Повышает прочность и износостойкость стали, совместим с разными марками чугуна и стали.</p>
-        </div>
-        <div class="tile">
-          <h3>Фракция 0–20 мм</h3>
-          <p class="sub">Оптимальная фракция для плавок и добавок при производстве специальных сталей.</p>
-        </div>
-        <div class="tile">
-          <h3>Условия поставки</h3>
-          <p class="sub">Оплата безналом, возможна отсрочка 30 дней. Погрузка силами продавца.</p>
-        </div>
-      </div>
-    </section>
+        <section class="products-section" id="products">
+            <div class="container">
+                <h2 class="section-title">Ключевые преимущества ШФС-30</h2>
+                <ul class="benefits-list">
+                    <li>Существенное снижение затрат на кремнийсодержащие материалы</li>
+                    <li>Возможность замены части дорогостоящего ферросилиция без потери технологических свойств</li>
+                    <li>Утилизация и вторичное использование металлургических отходов</li>
+                    <li>Возможность поставки в гранулированной или дроблёной фракции</li>
+                </ul>
+            </div>
+        </section>
+    </main>
 
-    <!--
-    <section id="calculator">
-      <h2>Калькулятор заказа</h2>
-      <div class="tile" style="max-width:760px;margin-top:12px">
-        <div class="calc">
-          <label for="tons">Тонн:</label>
-          <input id="tons" type="number" min="1" value="10">
-          <label for="price">Цена/т (руб):</label>
-          <input id="price" type="number" min="1" value="45000">
-          <button class="btn" id="calcNow">Рассчитать</button>
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-contact">
+                <strong>Адрес:</strong>
+                <p>294016, Луганская Народная Республика, г. Стаханов, ул. Фестивальная, д. 2, кв. 96</p>
+                <strong>Наши контакты:</strong>
+                <ul>
+                    <li>Телефоны: <a href="tel:+79592951803">+7 959 295 18 03</a>, <a href="tel:+79786506761">+7 978 650 67 61</a></li>
+                    <li>Email: <a href="mailto:vicangel@inbox.ru">vicangel@inbox.ru</a></li>
+                </ul>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 ООО «Липроеп Плюс».</p>
+            </div>
         </div>
-        <div id="calcResult" style="margin-top:12px;color:var(--muted)"></div>
-      </div>
-    </section>
-  -->
+    </footer>
 
-    <!--
-    <section id="certs">
-      <h2>Сертификаты и качество</h2>
-    </section>
-    -->
-    
-    <section id="contacts">
-      <h2>Контакты</h2>
-      <div class="grid-3" style="margin-top:12px">
-        <div class="tile">
-          <strong>Телефоны</strong>
-          <p class="sub">+7 959 295-18-03<br>+7 978 650-67-61</p>
-        </div>
-        <div class="tile">
-          <ul>
-            <li><strong>ИНН:</strong> <p class="sub">9407001396</p></li>
-            <li><strong>ОГРН:</strong> <p class="sub">2229400020265</p></li>
-            <li><strong>Юридический адрес:</strong> <p class="sub">294016, ЛНР, г. Стаханов, ул. Фестивальная, д.2, кв.96</p></li>
-          </ul>
-        </div>
-      </div>
-      <div class="tile" style="margin-top:12px">
-        <!-- <p class="sub">Добавьте сюда сканы протоколов химического анализа, сертификаты соответствия и паспорт качества. Пример формата: PDF, макс. 10 МБ.</p> -->
-      </div>
-        <!--
-        <div class="tile">
-          <strong>Форма связи</strong>
-          <form id="contactForm">
-            <input name="name" placeholder="Имя / Компания" style="width:100%;padding:8px;border-radius:6px;border:none;margin-bottom:8px;background:#0b0c0d;color:#fff">
-            <input name="phone" placeholder="Телефон / Email" style="width:100%;padding:8px;border-radius:6px;border:none;background:#0b0c0d;color:#fff">
-            <textarea name="msg" placeholder="Сообщение" style="width:100%;padding:8px;border-radius:6px;border:none;margin-top:8px;background:#0b0c0d;color:#fff"></textarea>
-            <div style="margin-top:8px"><button class="btn" type="submit">Отправить запрос</button></div>
-          </form>
-        </div>
-        -->
-    </section>
-
-  </main>
-
-  <footer>
-    &copy; ООО «Липроеп Плюс» — Ферросиликомарганец МНС17 · Все права защищены
-  </footer>
-
+    <script src="js/script.js"></script>
 </body>
-
 </html>
-

@@ -1,0 +1,538 @@
+/* Общие стили */
+:root {
+    --color-primary: #2C2C2C; /* Глубокий антрацитово-серый */
+    --color-accent: #005A8C;  /* Технологичный синий */
+    --color-secondary-accent: #CC5500; /* Тёплый оранжево-коричневый */
+    --color-light-gray: #E5E5E5; /* Светло-серый */
+    --color-white: #FFFFFF;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    color: var(--color-primary);
+    background-color: var(--color-light-gray);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    background-color: #00466B;
+}
+
+/* Шапка */
+.header {
+    background-color: var(--color-primary);
+    /*padding: 20px 0;*/
+    color: var(--color-white);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    object-fit: cover;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.logo-icon path {
+    stroke: var(--color-secondary-accent);/*--color-accent);*/
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-light-gray);
+}
+
+.header .container .nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header .container .nav .nav-list {
+    display: flex;
+    list-style: none;
+    height: 60px;
+}
+
+.header .container .nav .nav-list #select {
+    background-color: var(--color-light-gray);
+    /*background-color: var(--color-accent);*/
+}
+
+.header .container .nav .nav-list #select .nav-link:hover {
+    color: var(--color-primary);
+}
+
+.header .container .nav .nav-list li {
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+}
+
+.header .container .nav .nav-list li .nav-link {
+    color: var(--color-secondary-accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    /*display:inline-block;*/
+    display: block;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
+
+.header .container .nav .nav-list li .nav-link:hover {
+    color: var(--color-white);
+}
+
+.burger-menu {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.burger-menu span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-white);
+}
+
+/* Первый экран */
+.hero-section {
+    /*background-image: url('placeholder_industrial_texture.jpg');*/ /* Плейсхолдер: текстура шлака или брикетов */
+    background-size: cover;
+    background-position: center;
+    color: #FFFFFF;
+    padding: 100px 0;
+    text-align: center;
+    position: relative;
+}
+/*.hero-section {
+    position: relative;
+    height: 80vh;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    text-align: center;
+    padding: 0 20px;
+    z-index: 1;
+}*/
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(44, 44, 44, 0.7);
+    z-index: -1;
+}
+
+/*.hero-content {
+    max-width: 800px;
+}*/
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+}
+
+/* Секция "Экономический эффект" */
+.economic-section {
+    padding: 80px 0;
+    background-color: var(--color-white);
+    text-align: center;
+}
+
+.data-blocks {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+}
+
+.data-block {
+    flex: 1;
+    min-width: 250px;
+    padding: 20px;
+    background-color: var(--color-light-gray);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.data-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--color-secondary-accent);
+    display: block;
+    margin-bottom: 10px;
+}
+
+.data-description {
+    font-size: 1rem;
+    color: var(--color-primary);
+}
+
+.placeholder-diagram {
+    width: 100%;
+    height: 400px;
+    background-color: var(--color-light-gray);
+    border: 2px dashed var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* Секция "О компании" */
+.about-section {
+    padding: 80px 0;
+}
+
+.about-section-bg-one {
+    background-color: var(--color-light-gray);
+}
+
+.about-section-bg-two {
+    background-color: var(--color-white);
+}
+
+.about-content {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.about-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.placeholder-image {
+    background-repeat: no-repeat;
+    background-color: var(--color-white);
+    border: 2px dashed var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.placeholder-image img {
+    object-fit: cover;
+}
+
+/* Секция "Преимущества" */
+.products-section {
+    padding: 80px 0;
+    background-color: var(--color-white);
+}
+
+.benefits-list {
+    list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.benefits-list li {
+    background-color: var(--color-light-gray);
+    padding: 20px;
+    border-left: 5px solid var(--color-accent);
+    transition: transform 0.3s ease;
+}
+
+.benefits-list li:hover {
+    transform: translateY(-5px);
+}
+
+/* Подвал */
+.footer {
+    background-color: var(--color-primary);
+    color: var(--color-light-gray);
+    padding: 40px 0;
+    /*text-align: center;*/
+}
+
+.footer-contact hr {
+    background-color: var(--color-light-gray);
+    color: var(--color-light-gray);
+    border: 1px solid var(--color-light-gray);
+}
+
+.footer-contact ul {
+    margin: 0px 20px;
+}
+    /*list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;*/
+
+.footer-contact a {
+    color: var(--color-secondary-accent);/* --color-accent);*/
+    text-decoration: none;
+}
+
+.footer-contact a:hover {
+    text-decoration: underline;
+}
+
+.copyright {
+    margin-top: 20px;
+}
+
+/* Адаптивность */
+@media (min-width: 768px) {
+    .about-section .container {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 40px;
+        align-items: center;
+    }
+
+    .about-content {
+        margin-bottom: 0;
+        text-align: left;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    /*
+    .nav {
+        display: block;
+        width: 100%;
+        height: 75px;
+        position: absolute;
+        top: 0px;
+        top: 80px;
+        left: 0;
+        background-color: var(--color-primary);
+        flex-direction: column;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+    }
+    */
+    /*
+    .nav-list {
+        flex-direction: column;
+        padding: 0px;
+        gap: 15px;
+    }
+    */
+
+    .burger-menu {
+        display: flex;
+    }
+
+    .nav.active {
+        display: flex;
+    }
+
+    .data-blocks {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+/* Общие стили для продуктовых секций */
+.product-section {
+    padding: 40px 0;
+    /*background-color: var(--color-light-gray);*/
+    background-color: var(--color-white);
+}
+
+.product-section h2, .product-section h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.product-section p {
+    text-align: justify;
+    margin-bottom: 15px;
+}
+
+/* Стили для блока "Наш продукт" */
+.product-block, .economic-block, .why-us-block {
+    background-color: var(--color-white);
+    padding: 30px;
+    border-left: 5px solid var(--color-accent);
+    margin-bottom: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.product-block h3, .economic-block h3, .why-us-block h3 {
+    color: var(--color-primary);
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.product-block ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 15px;
+}
+
+.product-block ul li {
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 10px;
+}
+
+.product-block ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--color-secondary-accent);
+    font-weight: bold;
+}
+
+/* Стили для таблиц */
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.table-container th, .table-container td {
+    padding: 12px 15px;
+    border: 1px solid var(--color-light-gray);
+}
+
+.table-container thead {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+}
+
+.table-container tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.table-container tbody tr:hover {
+    background-color: var(--color-white);
+}
+
+/* Стили для блока "Экономическое обоснование" */
+.economic-block {
+    border-left-color: var(--color-secondary-accent);
+}
+
+.economic-block strong {
+    color: var(--color-secondary-accent);
+}
+
+/* Стили для блока "Почему мы?" */
+.why-us-block {
+    text-align: center;
+}
+
+.btn-secondary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-secondary:hover {
+    background-color: #4C4C4C;
+}
+
+/* Адаптивность для продуктовых секций */
+@media (max-width: 768px) {
+    .product-section {
+        padding: 60px 0;
+    }
+
+    .product-block, .economic-block, .why-us-block {
+        padding: 20px;
+    }
+}
