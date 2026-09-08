@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVIDIA GeForce RTX 5060 Ti — Ollama LLM Benchmark</title>
+<style>
+  :root {
+    --bg1:#e0f2fe; --bg2:#cffafe; --bg3:#bae6fd;
+    --card:rgba(255,255,255,.72); --card-solid:#ffffff;
+    --border:rgba(56,189,248,.45); --line:#bfdbfe;
+    --ink:#0f172a; --ink2:#334155; --mut:#64748b;
+    --c1:#0284c7; --c2:#06b6d4; --c3:#38bdf8; --c4:#5eead4;
+    --shadow:0 8px 32px rgba(2,132,199,.16);
+    --glow:0 0 0 1px rgba(56,189,248,.25), 0 10px 40px rgba(2,132,199,.22);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    color:var(--ink); padding:30px 24px 40px;
+    background:
+      radial-gradient(900px 500px at 8% -5%, rgba(56,189,248,.30), transparent 60%),
+      radial-gradient(800px 500px at 95% 5%, rgba(94,234,212,.30), transparent 55%),
+      radial-gradient(700px 600px at 50% 110%, rgba(14,165,233,.22), transparent 60%),
+      linear-gradient(180deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+    background-attachment:fixed;
+    position:relative;
+  }
+  body::before {
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(2,132,199,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(2,132,199,.05) 1px, transparent 1px);
+    background-size:34px 34px;
+  }
+  .container { max-width:1500px; margin:0 auto; position:relative; z-index:1; }
+  .orb { position:fixed; border-radius:50%; filter:blur(60px); opacity:.5; z-index:0; animation:float 12s ease-in-out infinite; }
+  .orb-a { width:340px; height:340px; background:#7dd3fc; top:-80px; left:10%; }
+  .orb-b { width:260px; height:260px; background:#67e8f9; bottom:-60px; right:8%; animation-delay:-6s; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px)} }
+  header {
+    position:relative; padding:32px 38px; border-radius:22px; margin-bottom:30px;
+    background:linear-gradient(120deg, rgba(255,255,255,.85), rgba(224,242,254,.75));
+    border:1px solid rgba(56,189,248,.55);
+    box-shadow:var(--glow); backdrop-filter:blur(14px);
+    overflow:hidden;
+  }
+  header::after {
+    content:""; position:absolute; inset:auto 0 0 0; height:3px;
+    background:linear-gradient(90deg, var(--c4), var(--c3), var(--c2), var(--c1), var(--c4));
+    background-size:200% 100%; animation:flow 6s linear infinite;
+  }
+  @keyframes flow { to { background-position:-200% 0; } }
+  h1 { font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; margin-bottom:6px; letter-spacing:-.5px; }
+  .grad { background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .subtitle { color:var(--mut); font-size:.92rem; }
+  .hdr-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .chip { background:rgba(56,189,248,.16); color:var(--c1); border:1px solid rgba(56,189,248,.5);
+          padding:2px 9px; border-radius:999px; font-size:.68rem; font-weight:700; white-space:nowrap; }
+  .chip-solid { background:linear-gradient(90deg,var(--c1),var(--c2)); color:#fff; border:none;
+          padding:3px 12px; border-radius:999px; font-size:.72rem; font-weight:700; }
+  h2.section { font-size:clamp(1.2rem,2.2vw,1.6rem); font-weight:800; margin:34px 0 16px; }
+  h2.section .t { font-family:'Segoe UI'; }
+  .grid { display:grid; gap:16px; }
+  .grid-2 { grid-template-columns:1fr 1fr; }
+  .grid-3 { grid-template-columns:repeat(3,1fr); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:18px;
+          padding:22px; backdrop-filter:blur(12px); box-shadow:var(--shadow); }
+  .card h3 { font-size:1.05rem; margin-bottom:14px; }
+  .rank-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+  .rank-card { position:relative; overflow:hidden; }
+  .rank-card:hover { transform:translateY(-3px); box-shadow:var(--glow); }
+  .rank-card { transition:all .2s; }
+  .rank-1 { border-color:rgba(234,179,8,.7); box-shadow:0 0 0 1px rgba(234,179,8,.35), 0 12px 40px rgba(234,179,8,.18); }
+  .rank-2 { border-color:rgba(148,163,184,.7); }
+  .rank-3 { border-color:rgba(180,83,9,.6); }
+  .rank-medal { font-size:1.6rem; }
+  .rank-name { font-size:1.08rem; font-weight:700; margin:6px 0 12px; word-break:break-word; }
+  .rank-num { position:absolute; top:10px; right:16px; font-size:2.6rem; font-weight:900; opacity:.10; color:var(--c1); }
+  .rank-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .rank-stat { text-align:center; padding:6px 2px; background:rgba(255,255,255,.5); border-radius:10px; }
+  .rank-stat .val { font-size:1.15rem; font-weight:800; }
+  .rank-stat .lbl { font-size:.64rem; color:var(--mut); text-transform:uppercase; letter-spacing:.5px; }
+  .num { font-variant-numeric:tabular-nums; font-family:'SF Mono','Cascadia Code','Consolas',monospace; }
+  .mini-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .mini-card { background:rgba(255,255,255,.6); border:1px solid var(--line); border-radius:14px;
+                padding:14px; text-align:center; backdrop-filter:blur(8px); }
+  .mini-val { font-size:1.3rem; font-weight:800; }
+  .mini-lbl { font-size:.68rem; color:var(--mut); text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+  .rating-wrap { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  .rating-ring { width:128px; height:128px; min-width:128px; position:relative; border-radius:50%;
+      background:conic-gradient(#059669 320.40000000000003deg, rgba(148,163,184,.22) 0deg);
+      display:flex; align-items:center; justify-content:center; box-shadow:0 0 24px rgba(2,132,199,.25); }
+  .rating-ring::before { content:""; position:absolute; width:100px; height:100px; border-radius:50%;
+      background:var(--card-solid); }
+  .rating-inner { position:relative; text-align:center; }
+  .rating-inner .big { font-size:2rem; font-weight:900; line-height:1; }
+  .rating-inner .lbl { font-size:.66rem; color:var(--mut); text-transform:uppercase; letter-spacing:.5px; }
+  .assess-text { color:var(--ink2); font-size:.92rem; line-height:1.7; }
+  .assess-text p { margin-bottom:10px; }
+  .assess-text b { color:var(--c1); }
+  .bar-chart { margin-top:8px; }
+  .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .bar-label { width:195px; min-width:195px; font-size:.78rem; text-align:right; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { flex:1; height:26px; background:rgba(255,255,255,.55); border:1px solid var(--line);
+      border-radius:8px; overflow:hidden; position:relative; }
+  .bar-fill { height:100%; border-radius:7px; display:flex; align-items:center; justify-content:flex-end;
+      padding-right:8px; font-size:.74rem; font-weight:800; color:#fff; }
+  .bar-tag { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:.66rem;
+      color:var(--mut); background:rgba(255,255,255,.75); border-radius:6px; padding:1px 6px; }
+  table { width:100%; border-collapse:separate; border-spacing:0; background:var(--card);
+      border:1px solid var(--border); border-radius:16px; overflow:hidden; backdrop-filter:blur(12px); box-shadow:var(--shadow); }
+  th { background:rgba(56,189,248,.14); padding:12px 10px; font-size:.78rem; text-align:center;
+      border-bottom:1px solid var(--line); color:var(--c1); }
+  td { padding:9px 10px; text-align:center; border-bottom:1px solid rgba(191,219,254,.6); font-size:.82rem; }
+  tr:last-child td { border-bottom:none; }
+  .test-name { text-align:left !important; font-weight:600; white-space:nowrap; }
+  .cat-row td { background:rgba(2,132,199,.08); font-weight:800; font-size:.8rem; text-transform:uppercase;
+      letter-spacing:1.2px; padding:8px 12px; color:var(--c1); }
+  .summary-row td { background:rgba(56,189,248,.1); font-size:.9rem; }
+  .muted { color:var(--mut); font-weight:400; }
+  .subslash { color:var(--mut); font-size:.7rem; font-weight:400; }
+  .cell-mini { font-size:.68rem; color:var(--mut); margin-top:2px; }
+  .bar-track-sm { height:14px; background:rgba(255,255,255,.6); border-radius:7px; overflow:hidden; border:1px solid var(--line); }
+  .bar-fill-sm { height:100%; border-radius:6px; }
+  .chip-cell { width:60px; }
+  .txt { text-align:left !important; color:var(--ink2); }
+  .footer { text-align:center; color:var(--mut); font-size:.74rem; margin-top:34px; padding:18px;
+      border-top:1px solid var(--line); }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.74rem; color:var(--mut); margin-top:10px; }
+  .legend span { display:inline-flex; align-items:center; gap:5px; }
+  .swatch { width:10px; height:10px; border-radius:3px; display:inline-block; }
+  @media(max-width:1000px) { .grid-2,.grid-3 { grid-template-columns:1fr; } .bar-label { width:130px; min-width:130px; } .rank-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:640px) { .rank-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="orb orb-a"></div>
+<div class="orb orb-b"></div>
+<div class="container">
+
+  <header>
+    <h1>⚡ <span class="grad">LLM Benchmark</span> — NVIDIA GeForce RTX 5060 Ti</h1>
+    <div class="subtitle">
+      Сравнение локальных моделей Ollama + оценка работы видеокарты
+      &nbsp;·&nbsp; 08.09.2026 01:03
+    </div>
+    <div class="hdr-chips">
+      <span class="chip">RTX 5060 Ti · 16 ГБ GDDR7</span>
+      <span class="chip">Драйвер NVIDIA 610.43.02</span>
+      <span class="chip">CUDA 13.3</span>
+      <span class="chip">Ollama v0.33.3</span>
+      <span class="chip">9 моделей</span>
+      <span class="chip">10 тестов качества + 2 агентских</span>
+    </div>
+  </header>
+
+  <!-- ============ SECTION 1: GPU ============ -->
+  <h2 class="section">🎮 <span class="grad">Раздел 1. Оценка работы видеокарты — NVIDIA GeForce RTX 5060 Ti</span></h2>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>📊 Итоговая оценка GPU</h3>
+      <div class="rating-wrap">
+        <div class="rating-ring">
+          <div class="rating-inner">
+            <div class="big num" style="color:#059669">8.9</div>
+            <div class="lbl">из 10</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;margin-bottom:6px;">
+            <span class="chip-solid">Отличная</span>
+            <span class="chip">за LLM-инференс</span>
+          </div>
+          <div class="assess-text">
+            <p><b>Загрузка:</b> 80% в среднем, пики до 98% — GPU полноценно загружается под инференсом моделей до 20B.</p>
+            <p><b>Нагрев:</b> 45°C в простое, до 69°C при нагрузке. Большой запас до троттлинга.</p>
+            <p><b>Эффективность:</b> 0.66 токена/Вт в среднем по всем моделям.</p>
+            <p style="margin-top:10px;color:var(--mut);font-size:.82rem">
+              Суб-оценки: загрузка — <b class="num">9.4</b>/10 · охлаждение — <b class="num">10</b>/10 · эффективность — <b class="num">6.6</b>/10
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🧮 Ключевые показатели видеокарты</h3>
+      <div class="mini-grid">
+      <div class="mini-card"><div class="mini-val num">16 ГБ</div><div class="mini-lbl">Видеопамять</div></div>
+      <div class="mini-card"><div class="mini-val num">45°C</div><div class="mini-lbl">Темп. в простое</div></div>
+      <div class="mini-card"><div class="mini-val num">69°C</div><div class="mini-lbl">Пиковая темп.</div></div>
+      <div class="mini-card"><div class="mini-val num">80%</div><div class="mini-lbl">Средн. загрузка</div></div>
+      <div class="mini-card"><div class="mini-val num">98%</div><div class="mini-lbl">Пик. загрузка</div></div>
+      <div class="mini-card"><div class="mini-val num">135 Вт</div><div class="mini-lbl">Средн. мощность</div></div>
+      <div class="mini-card"><div class="mini-val num">159 / 180 Вт</div><div class="mini-lbl">Пик мощность / лимит</div></div>
+      <div class="mini-card"><div class="mini-val num">0.66</div><div class="mini-lbl">Токен / Вт</div></div>
+      <div class="mini-card"><div class="mini-val num">10.4 ГБ</div><div class="mini-lbl">Средняя занятость VRAM</div></div></div>
+      <div class="legend">
+        <span><span class="swatch" style="background:#059669"></span>Отлично</span>
+        <span><span class="swatch" style="background:#d97706"></span>Удовлетворительно</span>
+        <span><span class="swatch" style="background:#dc2626"></span>Узкое место</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:26px 0 6px;font-size:1.05rem;">📈 Загрузка GPU по моделям</h3>
+  <div class="card"><div class="bar-chart"><div class="bar-row"><div class="bar-label">granite4.2:8b</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">95%</div><span class="bar-tag">макс 97%</span></div></div><div class="bar-row"><div class="bar-label">gemma4:12b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">94%</div><span class="bar-tag">макс 97%</span></div></div><div class="bar-row"><div class="bar-label">ornith-1.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">94%</div><span class="bar-tag">макс 96%</span></div></div><div class="bar-row"><div class="bar-label">gpt-oss:20b</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">92%</div><span class="bar-tag">макс 94%</span></div></div><div class="bar-row"><div class="bar-label">deepseek-coder-v2:16b</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">92%</div><span class="bar-tag">макс 98%</span></div></div><div class="bar-row"><div class="bar-label">rnj-1:8b</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">92%</div><span class="bar-tag">макс 97%</span></div></div><div class="bar-row"><div class="bar-label">qwen3.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:91%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">87%</div><span class="bar-tag">макс 91%</span></div></div><div class="bar-row"><div class="bar-label">lfm2.5:8b</div><div class="bar-track"><div class="bar-fill" style="width:59%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">57%</div><span class="bar-tag">макс 79%</span></div></div><div class="bar-row"><div class="bar-label">qwen3.8:27b</div><div class="bar-track"><div class="bar-fill" style="width:15%;background:linear-gradient(90deg,#38bdf8,#0ea5e9)">14%</div><span class="bar-tag">макс 58%</span></div></div></div></div>
+
+  <div class="grid grid-2">
+    <div style="margin-top:16px">
+      <h3 style="margin-bottom:6px;font-size:1.05rem;">🌡️ Нагрев GPU по моделям</h3>
+      <div class="card"><div class="bar-chart"><div class="bar-row"><div class="bar-label">granite4.2:8b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#5eead4,#22d3ee)">68°C</div><span class="bar-tag">средн 67°C</span></div></div><div class="bar-row"><div class="bar-label">gemma4:12b</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#5eead4,#22d3ee)">69°C</div><span class="bar-tag">средн 67°C</span></div></div><div class="bar-row"><div class="bar-label">ornith-1.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#5eead4,#22d3ee)">68°C</div><span class="bar-tag">средн 65°C</span></div></div><div class="bar-row"><div class="bar-label">gpt-oss:20b</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:linear-gradient(90deg,#5eead4,#22d3ee)">65°C</div><span class="bar-tag">средн 63°C</span></div></div><div class="bar-row"><div class="bar-label">deepseek-coder-v2:16b</div><div class="bar-track"><div class="bar-fill" style="width:97%;background:linear-gradient(90deg,#5eead4,#22d3ee)">67°C</div><span class="bar-tag">средн 64°C</span></div></div><div class="bar-row"><div class="bar-label">rnj-1:8b</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:linear-gradient(90deg,#5eead4,#22d3ee)">65°C</div><span class="bar-tag">средн 62°C</span></div></div><div class="bar-row"><div class="bar-label">qwen3.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#5eead4,#22d3ee)">68°C</div><span class="bar-tag">средн 66°C</span></div></div><div class="bar-row"><div class="bar-label">lfm2.5:8b</div><div class="bar-track"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,#5eead4,#22d3ee)">59°C</div><span class="bar-tag">средн 57°C</span></div></div><div class="bar-row"><div class="bar-label">qwen3.8:27b</div><div class="bar-track"><div class="bar-fill" style="width:91%;background:linear-gradient(90deg,#5eead4,#22d3ee)">63°C</div><span class="bar-tag">средн 52°C</span></div></div></div></div>
+    </div>
+    <div style="margin-top:16px">
+      <h3 style="margin-bottom:6px;font-size:1.05rem;">⚡ Потребление по моделям</h3>
+      <div class="card"><div class="bar-chart"><div class="bar-row"><div class="bar-label">granite4.2:8b</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#f472b6,#e879f9)">159 Вт</div><span class="bar-tag">пик 163 Вт</span></div></div><div class="bar-row"><div class="bar-label">gemma4:12b</div><div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#f472b6,#e879f9)">157 Вт</div><span class="bar-tag">пик 160 Вт</span></div></div><div class="bar-row"><div class="bar-label">ornith-1.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#f472b6,#e879f9)">154 Вт</div><span class="bar-tag">пик 158 Вт</span></div></div><div class="bar-row"><div class="bar-label">gpt-oss:20b</div><div class="bar-track"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,#f472b6,#e879f9)">136 Вт</div><span class="bar-tag">пик 140 Вт</span></div></div><div class="bar-row"><div class="bar-label">deepseek-coder-v2:16b</div><div class="bar-track"><div class="bar-fill" style="width:91%;background:linear-gradient(90deg,#f472b6,#e879f9)">135 Вт</div><span class="bar-tag">пик 149 Вт</span></div></div><div class="bar-row"><div class="bar-label">rnj-1:8b</div><div class="bar-track"><div class="bar-fill" style="width:96%;background:linear-gradient(90deg,#f472b6,#e879f9)">153 Вт</div><span class="bar-tag">пик 158 Вт</span></div></div><div class="bar-row"><div class="bar-label">qwen3.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#f472b6,#e879f9)">146 Вт</div><span class="bar-tag">пик 151 Вт</span></div></div><div class="bar-row"><div class="bar-label">lfm2.5:8b</div><div class="bar-track"><div class="bar-fill" style="width:81%;background:linear-gradient(90deg,#f472b6,#e879f9)">121 Вт</div><span class="bar-tag">пик 133 Вт</span></div></div><div class="bar-row"><div class="bar-label">qwen3.8:27b</div><div class="bar-track"><div class="bar-fill" style="width:41%;background:linear-gradient(90deg,#f472b6,#e879f9)">55 Вт</div><span class="bar-tag">пик 68 Вт</span></div></div></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>🖥️ Выводы об оценке видеокарты</h3>
+    <div class="assess-text">
+      <p><b>Эффективность:</b> Средняя загрузка GPU при инференсе моделей — 80% (пик скан-нагрузки 98%). Модели до 16B практически полностью утилизируют видеочип (92–95%). Исключение — qwen3.8:27b: её вес (17 ГБ) не помещается в 16 ГБ VRAM, часть слоёв выгружается в CPU — загрузка GPU падает до ~14%.</p>
+      <p><b>Нагрев:</b> Температура выросла с 45°C в простое до пиковых 69°C (66°C в среднем) при максимальной нагрузке. Запас до порога троттлинга (~90°C) — более чем достаточный, система охлаждения работает эффективно. Термальный комфорт отличный.</p>
+      <p><b>Нагрузка и питание:</b> Среднее потребление в нагрузке — 135 Вт, пик 159 Вт при лимите 180 Вт. Энергоэффективность инференса — 0.66 токена/Вт в среднем (лучший результат у lfm2.5:8b — 2.01 ток/Вт).</p>
+      <p><b>Итог:</b> RTX 5060 Ti уверенно тянет локальные LLM до 20B в полном объёме VRAM (модели 27B — частично на CPU) с комфортным нагревом
+         и хорошей энергоэффективностью (0.66 ток/Вт). Загрузка чипа близка к максимуму, температура далека от троттлинга.
+         Общая оценка работы видеокарты — <b style="color:#059669">8.9/10 (Отличная)</b>.</p>
+    </div>
+  </div>
+
+  <!-- ============ SECTION 2: OLLAMA MODELS ============ -->
+  <h2 class="section">🧠 <span class="grad">Раздел 2. Сравнение локальных моделей Ollama</span></h2>
+
+  <h3 style="margin:0 0 14px;font-size:1.05rem;">🏆 Рейтинг моделей (по качеству ответов)</h3>
+  <div class="rank-grid">
+        <div class="card rank-card rank-1">
+          <div class="rank-num">#1</div>
+          <div class="rank-medal">🥇</div>
+          <div class="rank-name">ornith-1.5:9b <span class="chip">9B · Ornith</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">9.2</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">70</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">0.13</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">262K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">3627</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">94%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card rank-2">
+          <div class="rank-num">#2</div>
+          <div class="rank-medal">🥈</div>
+          <div class="rank-name">granite4.2:8b <span class="chip">8B · IBM</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">9.2</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">72</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">0.13</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">131K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">11503</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">95%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card rank-3">
+          <div class="rank-num">#3</div>
+          <div class="rank-medal">🥉</div>
+          <div class="rank-name">deepseek-coder-v2:16b <span class="chip">16B · DeepSeek</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">8.7</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">172</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">0.09</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">164K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">1906</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">92%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#4</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">gemma4:12b <span class="chip">12B · Google</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">8.4</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">48</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">14.06</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">262K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">8405</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">94%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#5</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">gpt-oss:20b <span class="chip">20B · OpenAI</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">8.2</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">93</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">2.16</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">131K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">3527</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">92%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#6</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">qwen3.8:27b <span class="chip">27B · Alibaba</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">8.1</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">12</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">29.28</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">262K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">4646</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">14%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#7</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">lfm2.5:8b <span class="chip">8B · Liquid</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">7.8</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">251</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">0.05</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">128K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">4630</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">57%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#8</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">rnj-1:8b <span class="chip">8B · RNJ</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#059669">7.5</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">75</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">0.07</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">33K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">1309</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">92%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div>
+        <div class="card rank-card ">
+          <div class="rank-num">#9</div>
+          <div class="rank-medal"></div>
+          <div class="rank-name">qwen3.5:9b <span class="chip">9B · Alibaba</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><div class="val" style="color:#d97706">5.1</div><div class="lbl">Балл / 10</div></div>
+            <div class="rank-stat"><div class="val num">66</div><div class="lbl">Токен/сек</div></div>
+            <div class="rank-stat"><div class="val num">9.17</div><div class="lbl">TTFT, с</div></div>
+            <div class="rank-stat"><div class="val num">262K</div><div class="lbl">Контекст</div></div>
+            <div class="rank-stat"><div class="val num">15553</div><div class="lbl">Токенов всего</div></div>
+            <div class="rank-stat"><div class="val num">87%</div><div class="lbl">Загрузка GPU</div></div>
+          </div>
+        </div></div>
+
+  <div class="grid grid-2" style="margin-top:20px">
+    <div class="card">
+      <h3>🎯 Качество ответов (средний балл / 10)</h3>
+      <div class="bar-chart"><div class="bar-row"><div class="bar-label">ornith-1.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">9.2</div></div></div><div class="bar-row"><div class="bar-label">granite4.2:8b</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">9.2</div></div></div><div class="bar-row"><div class="bar-label">deepseek-coder-v2:16b</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">8.7</div></div></div><div class="bar-row"><div class="bar-label">gemma4:12b</div><div class="bar-track"><div class="bar-fill" style="width:84%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">8.4</div></div></div><div class="bar-row"><div class="bar-label">gpt-oss:20b</div><div class="bar-track"><div class="bar-fill" style="width:82%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">8.2</div></div></div><div class="bar-row"><div class="bar-label">qwen3.8:27b</div><div class="bar-track"><div class="bar-fill" style="width:81%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">8.1</div></div></div><div class="bar-row"><div class="bar-label">lfm2.5:8b</div><div class="bar-track"><div class="bar-fill" style="width:78%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">7.8</div></div></div><div class="bar-row"><div class="bar-label">rnj-1:8b</div><div class="bar-track"><div class="bar-fill" style="width:75%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">7.5</div></div></div><div class="bar-row"><div class="bar-label">qwen3.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:51%;background:linear-gradient(90deg,#22d3ee,#0ea5e9)">5.1</div></div></div></div>
+    </div>
+    <div class="card">
+      <h3>🚀 Скорость генерации (токенов/сек)</h3>
+      <div class="bar-chart"><div class="bar-row"><div class="bar-label">ornith-1.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:27%;background:linear-gradient(90deg,#38bdf8,#0284c7)">70</div></div></div><div class="bar-row"><div class="bar-label">granite4.2:8b</div><div class="bar-track"><div class="bar-fill" style="width:28%;background:linear-gradient(90deg,#38bdf8,#0284c7)">72</div></div></div><div class="bar-row"><div class="bar-label">deepseek-coder-v2:16b</div><div class="bar-track"><div class="bar-fill" style="width:68%;background:linear-gradient(90deg,#38bdf8,#0284c7)">172</div></div></div><div class="bar-row"><div class="bar-label">gemma4:12b</div><div class="bar-track"><div class="bar-fill" style="width:19%;background:linear-gradient(90deg,#38bdf8,#0284c7)">48</div></div></div><div class="bar-row"><div class="bar-label">gpt-oss:20b</div><div class="bar-track"><div class="bar-fill" style="width:37%;background:linear-gradient(90deg,#38bdf8,#0284c7)">93</div></div></div><div class="bar-row"><div class="bar-label">qwen3.8:27b</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:linear-gradient(90deg,#38bdf8,#0284c7)">12</div></div></div><div class="bar-row"><div class="bar-label">lfm2.5:8b</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#38bdf8,#0284c7)">251</div></div></div><div class="bar-row"><div class="bar-label">rnj-1:8b</div><div class="bar-track"><div class="bar-fill" style="width:29%;background:linear-gradient(90deg,#38bdf8,#0284c7)">75</div></div></div><div class="bar-row"><div class="bar-label">qwen3.5:9b</div><div class="bar-track"><div class="bar-fill" style="width:26%;background:linear-gradient(90deg,#38bdf8,#0284c7)">66</div></div></div></div>
+    </div>
+  </div>
+
+  <h3 style="margin:26px 0 6px;font-size:1.05rem;">📦 Контекстные окна моделей</h3>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th style="text-align:left">Модель</th><th>Параметры</th><th>Вендор</th><th>Размер контекста</th><th>Токенов</th></tr></thead>
+    <tbody><tr><td class="test-name">ornith-1.5:9b</td><td class="chip-cell">9B</td><td class="txt">Ornith</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:100%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">262K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">granite4.2:8b</td><td class="chip-cell">8B</td><td class="txt">IBM</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:50%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">131K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">deepseek-coder-v2:16b</td><td class="chip-cell">16B</td><td class="txt">DeepSeek</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:62%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">164K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">gemma4:12b</td><td class="chip-cell">12B</td><td class="txt">Google</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:100%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">262K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">gpt-oss:20b</td><td class="chip-cell">20B</td><td class="txt">OpenAI</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:50%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">131K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">qwen3.8:27b</td><td class="chip-cell">27B</td><td class="txt">Alibaba</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:100%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">262K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">lfm2.5:8b</td><td class="chip-cell">8B</td><td class="txt">Liquid</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:48%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">128K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">rnj-1:8b</td><td class="chip-cell">8B</td><td class="txt">RNJ</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:12%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">33K</b><span class="subslash"> токенов</span></td></tr><tr><td class="test-name">qwen3.5:9b</td><td class="chip-cell">9B</td><td class="txt">Alibaba</td><td><div class="bar-track-sm"><div class="bar-fill-sm" style="width:100%;background:linear-gradient(90deg,#38bdf8,#06b6d4)"></div></div></td><td><b class="num">262K</b><span class="subslash"> токенов</span></td></tr></tbody>
+  </table></div>
+
+  <h3 style="margin:26px 0 6px;font-size:1.05rem;">🤖 Агентские тесты (работа модели как агента)</h3>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th style="text-align:left;min-width:170px">Тест</th><th class="model-header">ornith-1.5:9b<br><span class="chip">9B · Ornith</span></th><th class="model-header">granite4.2:8b<br><span class="chip">8B · IBM</span></th><th class="model-header">deepseek-coder-v2:16b<br><span class="chip">16B · DeepSeek</span></th><th class="model-header">gemma4:12b<br><span class="chip">12B · Google</span></th><th class="model-header">gpt-oss:20b<br><span class="chip">20B · OpenAI</span></th><th class="model-header">qwen3.8:27b<br><span class="chip">27B · Alibaba</span></th><th class="model-header">lfm2.5:8b<br><span class="chip">8B · Liquid</span></th><th class="model-header">rnj-1:8b<br><span class="chip">8B · RNJ</span></th><th class="model-header">qwen3.5:9b<br><span class="chip">9B · Alibaba</span></th></tr></thead>
+    <tbody><tr class="cat-row"><td colspan="11">JSON-вызов инструмента</td></tr>
+<tr><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #dc2626"><b>1.0</b><span class="subslash">/10</span><div class="cell-mini muted">невалидный JSON</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #dc2626"><b>1.0</b><span class="subslash">/10</span><div class="cell-mini muted">невалидный JSON</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;func&#x27;, &#x27;args&#x27;]</div></td></tr>
+<tr class="cat-row"><td colspan="11">Цепочка действий агента</td></tr>
+<tr><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #dc2626"><b>1.0</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;ИНСТРУМЕНТЫ&#x27;]</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td><td style="border-left:3px solid #059669"><b>10</b><span class="subslash">/10</span><div class="cell-mini muted">funcs=[&#x27;search_web&#x27;, &#x27;read_article&#x27;, &#x27;su</div></td></tr>
+</tbody>
+  </table></div>
+  <div class="legend" style="margin-top:8px">
+    <span>Агентские тесты: модель должна вернуть JSON-вызовы инструментов по задаче пользователя (tool calling). Оценка — корректность и порядок вызовов.</span>
+  </div>
+
+  <h3 style="margin:26px 0 6px;font-size:1.05rem;">📊 Детальная таблица — качество по каждому тесту</h3>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th style="text-align:left;min-width:170px">Тест</th><th class="model-header">ornith-1.5:9b<br><span class="chip">9B · Ornith</span></th><th class="model-header">granite4.2:8b<br><span class="chip">8B · IBM</span></th><th class="model-header">deepseek-coder-v2:16b<br><span class="chip">16B · DeepSeek</span></th><th class="model-header">gemma4:12b<br><span class="chip">12B · Google</span></th><th class="model-header">gpt-oss:20b<br><span class="chip">20B · OpenAI</span></th><th class="model-header">qwen3.8:27b<br><span class="chip">27B · Alibaba</span></th><th class="model-header">lfm2.5:8b<br><span class="chip">8B · Liquid</span></th><th class="model-header">rnj-1:8b<br><span class="chip">8B · RNJ</span></th><th class="model-header">qwen3.5:9b<br><span class="chip">9B · Alibaba</span></th></tr></thead>
+    <tbody><tr class="cat-row"><td colspan="11">Код</td></tr>
+<tr><td class="test-name">Функция на Python</td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 68т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 72т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 183т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">23.7с · 48т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">2.4с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">21.8с · 13т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 247т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 75т/с</div></td><td style="border-left:3px solid #dc2626"><b>0.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 66т/с</div></td></tr>
+<tr><td class="test-name">Функция на JavaScript</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 69т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 73т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 181т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">16.0с · 49т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">1.8с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">15.1с · 10т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 252т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 75т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">2.0с · 66т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Математика</td></tr>
+<tr><td class="test-name">Уравнение</td><td style="border-left:3px solid #059669"><b>7.5</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 71т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 108т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">14.4с · 48т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">3.0с · 92т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">23.0с · 14т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 251т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 74т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">19.5с · 66т/с</div></td></tr>
+<tr><td class="test-name">Задача на вероятность</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 72т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 167т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">15.3с · 48т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">1.8с · 92т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">18.8с · 12т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 254т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 73т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">20.7с · 66т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Логика</td></tr>
+<tr><td class="test-name">Логическая задача</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 71т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 169т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">13.0с · 48т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">2.3с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">18.6с · 12т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 254т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 74т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">11.9с · 66т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Следование инструкциям</td></tr>
+<tr><td class="test-name">Формат ответа</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 72т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 182т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">6.1с · 49т/с</div></td><td style="border-left:3px solid #dc2626"><b>3.0</b><span class="subslash">/10</span><div class="cell-mini num">3.3с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">19.9с · 12т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 254т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 76т/с</div></td><td style="border-left:3px solid #dc2626"><b>0.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 67т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Творчество</td></tr>
+<tr><td class="test-name">Короткий стих</td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 72т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 181т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">27.3с · 47т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">1.8с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">116.7с · 12т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 249т/с</div></td><td style="border-left:3px solid #059669"><b>7.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 75т/с</div></td><td style="border-left:3px solid #dc2626"><b>3.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 65т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Анализ</td></tr>
+<tr><td class="test-name">Резюмирование</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>9.5</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 181т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">12.4с · 48т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">2.2с · 93т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">17.7с · 12т/с</div></td><td style="border-left:3px solid #d97706"><b>4.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 256т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 75т/с</div></td><td style="border-left:3px solid #d97706"><b>6.0</b><span class="subslash">/10</span><div class="cell-mini num">24.6с · 67т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Язык</td></tr>
+<tr><td class="test-name">Перевод</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 69т/с</div></td><td style="border-left:3px solid #059669"><b>8.3</b><span class="subslash">/10</span><div class="cell-mini num">0.2с · 72т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 186т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">6.1с · 49т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">1.5с · 94т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">18.0с · 12т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 248т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 80т/с</div></td><td style="border-left:3px solid #dc2626"><b>0.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 67т/с</div></td></tr>
+<tr class="cat-row"><td colspan="11">Структурированные данные</td></tr>
+<tr><td class="test-name">Генерация JSON</td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 70т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 73т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.1с · 180т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">6.2с · 49т/с</div></td><td style="border-left:3px solid #059669"><b>9.0</b><span class="subslash">/10</span><div class="cell-mini num">1.6с · 93т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">23.2с · 13т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 250т/с</div></td><td style="border-left:3px solid #059669"><b>8.0</b><span class="subslash">/10</span><div class="cell-mini num">0.0с · 74т/с</div></td><td style="border-left:3px solid #059669"><b>10.0</b><span class="subslash">/10</span><div class="cell-mini num">12.6с · 67т/с</div></td></tr>
+<tr class="summary-row"><td class="test-name"><b>Средний балл</b></td><td style="border-left:3px solid #059669"><b class="num">9.2</b></td><td style="border-left:3px solid #059669"><b class="num">9.2</b></td><td style="border-left:3px solid #059669"><b class="num">8.7</b></td><td style="border-left:3px solid #059669"><b class="num">8.4</b></td><td style="border-left:3px solid #059669"><b class="num">8.2</b></td><td style="border-left:3px solid #059669"><b class="num">8.1</b></td><td style="border-left:3px solid #059669"><b class="num">7.8</b></td><td style="border-left:3px solid #059669"><b class="num">7.5</b></td><td style="border-left:3px solid #d97706"><b class="num">5.1</b></td></tr>
+<tr class="summary-row"><td class="test-name"><b>TTFT ответа (средн.)</b></td><td style="border-left:3px solid transparent"><b class="num">0.13с</b></td><td style="border-left:3px solid transparent"><b class="num">0.13с</b></td><td style="border-left:3px solid transparent"><b class="num">0.09с</b></td><td style="border-left:3px solid transparent"><b class="num">14.06с</b></td><td style="border-left:3px solid transparent"><b class="num">2.16с</b></td><td style="border-left:3px solid transparent"><b class="num">29.28с</b></td><td style="border-left:3px solid transparent"><b class="num">0.05с</b></td><td style="border-left:3px solid transparent"><b class="num">0.07с</b></td><td style="border-left:3px solid transparent"><b class="num">9.17с</b></td></tr>
+<tr class="summary-row"><td class="test-name"><b>Токенов/сек (средн.)</b></td><td style="border-left:3px solid transparent"><b class="num">70</b></td><td style="border-left:3px solid transparent"><b class="num">72</b></td><td style="border-left:3px solid transparent"><b class="num">172</b></td><td style="border-left:3px solid transparent"><b class="num">48</b></td><td style="border-left:3px solid transparent"><b class="num">93</b></td><td style="border-left:3px solid transparent"><b class="num">12</b></td><td style="border-left:3px solid transparent"><b class="num">251</b></td><td style="border-left:3px solid transparent"><b class="num">75</b></td><td style="border-left:3px solid transparent"><b class="num">66</b></td></tr>
+</tbody>
+  </table></div>
+
+  <div class="footer">
+    Ollama v0.33.3 · Приоритизация: скорость включает рассуждения (thinking) моделей · Оценка качества — эвристика по ключевым словам и валидности ответа
+  </div>
+</div>
+</body>
+</html>
